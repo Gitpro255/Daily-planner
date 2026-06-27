@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Meeting Notes & Plans</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-mode">
+  <nav>
+    <a href="index.html">🏠 Planner</a>
+    <a href="activities.html">🎯 Activities</a>
+    <a href="notes.html">📝 Notes</a>
+    <button id="themeToggle">🎨 Theme: Dark</button>
+  </nav>
+
+  <header>
+    <h1>📝 Meeting Notes & Plans</h1>
+    <p>Save your ideas, plans, and discussions permanently.</p>
+  </header>
+
+  <input type="text" id="searchBar" placeholder="Search notes...">
+  <input type="text" id="noteInput" placeholder="Enter a new note...">
+  <button onclick="addNote()">➕ Add Note</button>
+  <ul id="noteList"></ul>
+  <a class="back" href="index.html">⬅️ Back to Planner</a>
+
+  <script>
+    const themes = ['dark-mode', 'light-mode', 'blue-mode', 'green-mode', 'purple-mode'];
+    const themeNames = ['Dark', 'Light', 'Blue', 'Green', 'Purple'];
+    let currentThemeIndex = 0;
+
+    const noteInput = document.getElementById("noteInput");
+    const noteList = document.getElementById("noteList");
+    const searchBar = document.getElementById("searchBar");
+    const themeToggle = document.getElementById("themeToggle");
+
+    window.onload = () => {
+      const savedTheme=localStorage.getItem("theme")||'dark-mode';
+      document.body.className=savedTheme;
+      currentThemeIndex=themes.indexOf(savedTheme);
+      themeToggle.textContent=`🎨 Theme: ${themeNames[currentThemeIndex]}`;
+
+      const savedNotes = JSON.parse(localStorage.getItem("notes")) || [];
+      savedNotes.forEach(note => {const li = document.createElement("li");li.textContent = note;noteList.appendChild(li);});
+    };
+
+    themeToggle.addEventListener("click",()=>{
+      document.body.classList.remove(themes[currentThemeIndex]);
+      currentThemeIndex=(currentThemeIndex+1)%themes.length;
+      document.body.classList.add(themes[currentThemeIndex]);
+      themeToggle.textContent=`🎨 Theme: ${themeNames[currentThemeIndex]}`;
+      localStorage.setItem("theme",themes[currentThemeIndex]);
+    });
+
+    function addNote() {
+      const noteText = noteInput.value.trim();
+      if (noteText === "") return;
+      const li = document.createElement("li");
+      li.textContent = noteText;
+      noteList.appendChild(li);
+      saveNotes();noteInput.value = "";
+    }
+    function saveNotes() {
+      const notes = [];
+      document.querySelectorAll("#noteList li").forEach(li => {notes.push(li.textContent);});
+      localStorage.setItem("notes", JSON.stringify(notes));
+    }
+    searchBar.addEventListener("input", () => {
+      const filter = searchBar.value.toLowerCase();
+      document.querySelectorAll("#noteList li").forEach(li => {
+        li.style.display = li.textContent.toLowerCase().includes(filter)? "" : "none";
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Daily Planner</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-mode">
+  <nav>
+    <a href="index.html">🏠 Planner</a>
+    <a href="activities.html">🎯 Activities</a>
+    <a href="notes.html">📝 Notes</a>
+    <button id="themeToggle">🎨 Theme: Dark</button>
+  </nav>
+
+  <header>
+    <h1>WELCOME TO THE HOME OF REST</h1>
+    <div id="quote"></div>
+  </header>
+
+  <div id="summary">
+    <h2>📊 Dashboard Summary</h2>
+    <p id="summaryText">0 tasks completed, 0 tasks pending</p>
+    <div id="progressContainer"><div id="progressBar">0%</div></div>
+  </div>
+
+  <section>
+    <h2>To-Do List</h2>
+    <input type="text" id="taskInput" placeholder="Enter a new task...">
+    <button id="addBtn">➕ Add Task</button>
+    <ul id="taskList"></ul>
+  </section>
+
+  <a class="next" href="activities.html">➡️ Next Page: Fun Activities</a>
+
+  <script>
+    const themes = ['dark-mode', 'light-mode', 'blue-mode', 'green-mode', 'purple-mode'];
+    const themeNames = ['Dark', 'Light', 'Blue', 'Green', 'Purple'];
+    let currentThemeIndex = 0;
+
+    const addBtn=document.getElementById("addBtn"),taskInput=document.getElementById("taskInput"),taskList=document.getElementById("taskList"),quoteBox=document.getElementById("quote"),summaryText=document.getElementById("summaryText"),progressBar=document.getElementById("progressBar"),themeToggle=document.getElementById("themeToggle");
+
+    const quotes=["Believe you can and you're halfway there.","Every day is a chance to be better.","Small steps lead to big results.","Your rest fuels your success.","Stay positive, work hard, rest well."];
+    quoteBox.textContent=quotes[Math.floor(Math.random()*quotes.length)];
+
+    // Load theme
+    window.onload=()=>{
+      const savedTheme=localStorage.getItem("theme")||'dark-mode';
+      document.body.className=savedTheme;
+      currentThemeIndex=themes.indexOf(savedTheme);
+      themeToggle.textContent=`🎨 Theme: ${themeNames[currentThemeIndex]}`;
+
+      const savedTasks=JSON.parse(localStorage.getItem("tasks"))||[];
+      savedTasks.forEach(task=>renderTask(task.text, task.completed));
+      updateSummary();
+    };
+
+    // Theme toggle 5 colors
+    themeToggle.addEventListener("click",()=>{
+      document.body.classList.remove(themes[currentThemeIndex]);
+      currentThemeIndex=(currentThemeIndex+1)%themes.length;
+      document.body.classList.add(themes[currentThemeIndex]);
+      themeToggle.textContent=`🎨 Theme: ${themeNames[currentThemeIndex]}`;
+      localStorage.setItem("theme",themes[currentThemeIndex]);
+    });
+
+    addBtn.addEventListener("click",()=>{
+      const taskText=taskInput.value.trim();
+      if(taskText===""){alert("Please enter a task!");return;}
+      renderTask(taskText, false);
+      saveTasks();taskInput.value="";updateSummary();
+    });
+
+    function renderTask(text, completed){
+      const li=document.createElement("li");
+      const spanText=document.createElement("span");
+      spanText.textContent=text;
+      const percentSpan=document.createElement("span");
+      percentSpan.classList.add("task-percent");
+      percentSpan.textContent="0%";
+
+      li.appendChild(spanText);
+      li.appendChild(percentSpan);
+      if(completed){li.classList.add("completed");const tick=document.createElement("span");tick.classList.add("tick");tick.textContent="✔";li.appendChild(tick);}
+      li.addEventListener("click",()=>toggleTask(li));
+      taskList.appendChild(li);
+    }
+
+    function toggleTask(li){
+      li.classList.toggle("completed");
+      const tick=li.querySelector(".tick");
+      if(li.classList.contains("completed")){
+        if(!tick){const t=document.createElement("span");t.classList.add("tick");t.textContent="✔";li.appendChild(t);}
+      }else{if(tick)li.removeChild(tick);}
+      saveTasks();updateSummary();
+    }
+
+    function saveTasks(){
+      const tasks=[];
+      document.querySelectorAll("#taskList li").forEach(li=>{
+        tasks.push({text:li.querySelector("span").textContent,completed:li.classList.contains("completed")});
+      });
+      localStorage.setItem("tasks",JSON.stringify(tasks));
+    }
+
+    function updateSummary(){
+      const tasks=document.querySelectorAll("#taskList li"),completed=document.querySelectorAll("#taskList li.completed").length,pending=tasks.length-completed;
+      summaryText.textContent=`${completed} tasks completed, ${pending} tasks pending`;
+      const percent=tasks.length>0?Math.round((completed/tasks.length)*100):0;
+      progressBar.style.width=percent+"%";
+      progressBar.textContent=percent+"%";
+
+      // Update each task % bar
+      document.querySelectorAll("#taskList li").forEach(li=>{
+        const p=li.querySelector(".task-percent");
+        p.textContent=li.classList.contains("completed")?"100%":"0%";
+      });
+    }
+  </script>
+</body>
+</html>
